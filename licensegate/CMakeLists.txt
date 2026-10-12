@@ -1,0 +1,65 @@
+cmake_minimum_required(VERSION 3.16)
+
+project(licensegate VERSION 0.1 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# ── libsodium ──────────────────────────────────────────────────────────────
+# Adjust this path if you move the library folder.
+set(SODIUM_ROOT "C:/Users/cmkak/Documents/libs/libsodium-win64"
+    CACHE PATH "Path to the libsodium installation")
+
+find_package(Qt6 REQUIRED COMPONENTS Quick QuickDialogs2)
+
+qt_standard_project_setup(REQUIRES 6.10)
+
+# Content of downloaded design from Figma to Qt or similar
+if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/importedcontent/CMakeLists.txt")
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/importedcontent)
+endif()
+
+qt_add_executable(applicensegate
+    main.cpp
+    licenseauth.cpp
+    licenseauth.h       # Q_OBJECT – MOC must process this
+    recentlogins.cpp
+    recentlogins.h      # Q_OBJECT – MOC must process this
+    AppConfig.cpp
+    AppConfig.h
+    AppSettings.cpp
+    AppSettings.h       # Q_OBJECT – MOC must process this
+    crypto_utils.cpp
+    crypto_utils.h
+    shared_license_key.h
+    public_license_key.h
+)
+
+qt_add_qml_module(applicensegate
+    URI licensegate
+    QML_FILES
+        Main.qml
+        LoginPage.qml
+        WelcomePage.qml
+)
+
+set_target_properties(applicensegate PROPERTIES
+#    MACOSX_BUNDLE_GUI_IDENTIFIER com.example.applicensegate
+    MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+    MACOSX_BUNDLE TRUE
+    WIN32_EXECUTABLE TRUE
+)
+
+target_include_directories(applicensegate PRIVATE ${SODIUM_ROOT}/include)
+target_link_libraries(applicensegate
+    PRIVATE Qt6::Quick
+    PRIVATE Qt6::QuickDialogs2
+    PRIVATE ${SODIUM_ROOT}/lib/libsodium.a
+)
+
+install(TARGETS applicensegate
+    BUNDLE DESTINATION .
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
